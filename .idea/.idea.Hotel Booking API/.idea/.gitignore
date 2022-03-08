@@ -1,0 +1,21 @@
+﻿# Default ignored files
+/shelf/
+/workspace.xml
+# Rider ignored files
+/contentModel.xml
+/.idea.Hotel Booking API.iml
+/projectSettingsUpdater.xml
+/modules.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+obj
+[Bb]in
+[Dd]ebug
+[Rr]elease
+[Ll]og
+[Tt]est[Rr]esults
+.vs
+.idea
