@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  hotelbooking.api:
+    image: ${DOCKER_REGISTRY-}hotelbookingapi
+    build:
+      context: .
+      dockerfile: HotelBooking.Api/Dockerfile
+
+  postgres:
+    image: postgres
+
+  redis:
+    image: redis:latest
+
+volumes:
+  dbdata:
+  redisdata:

@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  hotelbooking.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - ConnectionStrings__DbConnection=Server=postgres;Port=5432;Database=hotelbookings;User Id=postgres;Password=postgres;
+      - Connection_Strings__Redis=redis
+    ports:
+      - "80"
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  postgres:
+    container_name: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD:postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresdata:/var/lib/postgresql/data
+
+  redis:
+    container_name: redis
+    volumes:
+      - redisdata:/data

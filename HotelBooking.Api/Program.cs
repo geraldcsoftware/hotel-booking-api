@@ -14,6 +14,9 @@ var connectionString = builder.Configuration.GetConnectionString("DbConnection")
 if (string.IsNullOrEmpty(connectionString)) throw new("Connection string not properly configured");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
+builder.Services.AddStackExchangeRedisCache(options =>
+    options.Configuration = builder.Configuration.GetConnectionString("Redis"));
+builder.Services.AddTransient<ISystemCache, RedisCacheWrapper>();
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
@@ -43,7 +46,7 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
         return result switch
         {
             null => Results.NotFound(),
-            { }  => Results.Ok(result)
+            { } => Results.Ok(result)
         };
     })
    .WithDisplayName("Find Hotel By Id")
@@ -53,7 +56,7 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
 app.MapGet("/api/v1/hotels/{hotelId}/availability",
            async (string hotelId, DateOnly? checkIn, DateOnly? checkOut, IMediator mediator) =>
            {
-               var checkInDate = checkIn   ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+               var checkInDate = checkIn ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
                var checkOutDate = checkOut ?? DateOnly.FromDateTime(DateTime.Today.AddDays(2));
                var result = await mediator.Send(new CheckHotelAvailabilityRequest(hotelId, checkInDate, checkOutDate));
                return Results.Ok(result);
