@@ -10,11 +10,11 @@ public class FeatureDescriptionConfiguration : IEntityTypeConfiguration<FeatureD
     {
         builder.ToTable("HotelFeatures");
 
-        builder.Property(x => x.Id).IsRequired();
-        builder.Property(x => x.FeatureName).IsRequired();
-        builder.Property(x => x.Description);
-        builder.Property(x => x.Value).IsRequired().HasColumnType("bson");
-        builder.Property(x => x.HotelId).IsRequired();
+        builder.Property(x => x.Id).IsRequired().HasMaxLength(50).IsUnicode(false);
+        builder.Property(x => x.FeatureName).IsRequired().HasMaxLength(50).IsUnicode(false);
+        builder.Property(x => x.Description).HasMaxLength(500).IsUnicode(false);
+        builder.Property(x => x.Value).IsRequired().HasMaxLength(8000).IsUnicode();
+        builder.Property(x => x.HotelId).IsRequired().IsRequired().HasMaxLength(50).IsUnicode(false);;
         
     }
 }
