@@ -20,35 +20,35 @@ public class FindHotelByIdRequestHandler : IRequestHandler<FindHotelByIdRequest,
     public async Task<HotelViewModel?> Handle(FindHotelByIdRequest request, CancellationToken cancellationToken)
     {
         var cacheKey = $"Hotel{request.HotelId}";
-        if (await _systemCache.TryGet<HotelViewModel>(cacheKey, out var hotelViewModel))
-            return hotelViewModel;
+        var hotelViewModel = await _systemCache.Get<HotelViewModel>(cacheKey);
+        if (hotelViewModel != null) return hotelViewModel;
 
         hotelViewModel = await _dbContext.Hotels
                                          .Include(h => h.Offers)
                                          .AsNoTracking()
                                          .Where(hotel => hotel.Id == request.HotelId)
                                          .Select(h => new HotelViewModel
-                                          {
-                                              Address = h.Address,
-                                              Description = h.Description,
-                                              Id = h.Id,
-                                              Location = h.Location,
-                                              Rating = h.Rating,
-                                              Name = h.Name,
-                                              PricesFrom = h.Offers.Select(x => x.Price).DefaultIfEmpty(0).Min(),
-                                              RoomTypes = h.Offers.OrderByDescending(x => x.Price)
+                                         {
+                                             Address = h.Address,
+                                             Description = h.Description,
+                                             Id = h.Id,
+                                             Location = h.Location,
+                                             Rating = h.Rating,
+                                             Name = h.Name,
+                                             PricesFrom = h.Offers.Select(x => x.Price).DefaultIfEmpty(0).Min(),
+                                             RoomTypes = h.Offers.OrderByDescending(x => x.Price)
                                                            .Select(x => new RoomTypeViewModel
-                                                            {
-                                                                Id = x.Id,
-                                                                Price = x.Price,
-                                                                Title = x.Title,
-                                                                MaximumOccupants = x.MaximumOccupants
-                                                            }).ToList()
-                                          })
+                                                           {
+                                                               Id = x.Id,
+                                                               Price = x.Price,
+                                                               Title = x.Title,
+                                                               MaximumOccupants = x.MaximumOccupants
+                                                           }).ToList()
+                                         })
                                          .FirstOrDefaultAsync(cancellationToken);
         if (hotelViewModel is not null)
             await _systemCache.Add(cacheKey, hotelViewModel);
-        
+
         return hotelViewModel;
     }
 }

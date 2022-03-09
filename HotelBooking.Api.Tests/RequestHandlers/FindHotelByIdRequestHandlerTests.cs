@@ -22,8 +22,8 @@ public class FindHotelByIdRequestHandlerTests
     {
         // Arrange
         var fakeResult = new Faker<HotelViewModel>().Generate();
-        _systemCacheMock.Setup(x => x.TryGet(It.IsAny<string>(), out fakeResult))
-                        .ReturnsAsync(true)
+        _systemCacheMock.Setup(x => x.Get<HotelViewModel>(It.IsAny<string>()))
+                        .ReturnsAsync(fakeResult)
                         .Verifiable();
         _dbContextMock.Setup(x => x.Hotels).Verifiable();
         var handler = new FindHotelByIdRequestHandler(_dbContextMock.Object, _systemCacheMock.Object);
@@ -34,7 +34,7 @@ public class FindHotelByIdRequestHandlerTests
         var result = handler.Handle(request, default).GetAwaiter().GetResult();
 
         // Assert
-        _systemCacheMock.Verify(x => x.TryGet(It.IsAny<string>(), out It.Ref<HotelViewModel>.IsAny), Times.Once);
+        _systemCacheMock.Verify(x => x.Get<HotelViewModel>(It.IsAny<string>()), Times.Once);
         _dbContextMock.Verify(x => x.Hotels, Times.Never);
         result.Should().Be(fakeResult);
     }
@@ -48,8 +48,8 @@ public class FindHotelByIdRequestHandlerTests
                         .RuleFor(x => x.Id, "1234")
                         .RuleFor(x => x.Offers, new Faker<RoomOffer>().Generate(5))
                         .Generate();
-        _systemCacheMock.Setup(x => x.TryGet(It.IsAny<string>(), out It.Ref<HotelViewModel>.IsAny))
-                        .ReturnsAsync(false);
+        _systemCacheMock.Setup(x => x.Get<HotelViewModel>(It.IsAny<string>()))
+                        .ReturnsAsync((HotelViewModel?)null);
         _systemCacheMock.Setup(x => x.Add(It.IsAny<string>(), It.IsAny<HotelViewModel>())).Returns(Task.CompletedTask).Verifiable();
         _dbContextMock.Setup(x => x.Hotels).ReturnsDbSet(new [] { fakeResult });
         var handler = new FindHotelByIdRequestHandler(_dbContextMock.Object, _systemCacheMock.Object);
@@ -59,7 +59,7 @@ public class FindHotelByIdRequestHandlerTests
         var result = handler.Handle(request, default).GetAwaiter().GetResult();
 
         // Assert
-        _systemCacheMock.Verify(x => x.TryGet(It.IsAny<string>(), out It.Ref<HotelViewModel>.IsAny), Times.Once);
+        _systemCacheMock.Verify(x => x.Get<HotelViewModel>(It.IsAny<string>()), Times.Once);
         _dbContextMock.Verify(x => x.Hotels, Times.Once);
         _systemCacheMock.Verify(x => x.Add(It.IsAny<string>(), It.IsAny<HotelViewModel>()), Times.Once);
         result.Should().NotBeNull();

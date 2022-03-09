@@ -5,6 +5,8 @@ using HotelBooking.Api.Requests;
 using HotelBooking.Api.Services;
 using HotelBooking.Api.Validators;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +29,19 @@ builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
 builder.Services.AddFluentValidation();
 builder.Services.AddTransient<IValidator<BookingRequest>, BookingRequestValidator>();
 
+builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+       .AddJwtBearer(options =>
+        {
+            options.Authority = builder.Configuration.GetValue<string>("Auth0:Authority");
+            options.Audience = builder.Configuration.GetValue<string>("Auth0:Audience");
+        });
+
+builder.Services.AddAuthorization(options => options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,6 +52,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Get Hotels api. Parameters -> pageSize, page, location, minimumRating
 app.MapGet("/api/v1/hotels", async (int? pageSize, int? page, string? location, int? minRating, IMediator mediator) =>
@@ -45,8 +62,7 @@ app.MapGet("/api/v1/hotels", async (int? pageSize, int? page, string? location, 
         var response = await mediator.Send(fetchRequest).ConfigureAwait(false);
         return response;
     })
-   .WithDisplayName("Fetch Hotels")
-   .WithGroupName("Hotels");
+   .WithDisplayName("Fetch Hotels");
 
 app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator) =>
     {
@@ -54,23 +70,21 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
         return result switch
         {
             null => Results.NotFound(),
-            { }  => Results.Ok(result)
+            { } => Results.Ok(result)
         };
     })
-   .WithDisplayName("Find Hotel By Id")
-   .WithGroupName("Hotels");
+   .WithDisplayName("Find Hotel By Id");
 
 
 app.MapGet("/api/v1/hotels/{hotelId}/availability",
            async (string hotelId, DateOnly? checkIn, DateOnly? checkOut, IMediator mediator) =>
            {
-               var checkInDate = checkIn   ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+               var checkInDate = checkIn ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
                var checkOutDate = checkOut ?? DateOnly.FromDateTime(DateTime.Today.AddDays(2));
                var result = await mediator.Send(new CheckHotelAvailabilityRequest(hotelId, checkInDate, checkOutDate));
                return Results.Ok(result);
            })
-   .WithDisplayName("Check Hotel Availability")
-   .WithGroupName("Hotels");
+   .WithDisplayName("Check Hotel Availability");
 
 app.MapPost("/api/v1/bookings", async (BookingRequest model, IMediator mediator) =>
     {
@@ -80,7 +94,7 @@ app.MapPost("/api/v1/bookings", async (BookingRequest model, IMediator mediator)
             return result switch
             {
                 null => Results.BadRequest(),
-                { }  => Results.Created($"/api/v1/reservations/{result.Id}", result)
+                { } => Results.Created($"/api/v1/reservations/{result.Id}", result)
             };
         }
         catch (ValidationException exception)
@@ -89,10 +103,8 @@ app.MapPost("/api/v1/bookings", async (BookingRequest model, IMediator mediator)
             return Results.BadRequest(problemDetails);
         }
     })
-    //.RequireAuthorization()
-   .WithDisplayName("Book Hotel")
-   .WithGroupName("Bookings");
-
+   .RequireAuthorization()
+   .WithDisplayName("Book Hotel");
 
 app.Run();
 

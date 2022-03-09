@@ -14,10 +14,6 @@ namespace HotelBooking.Api.Tests.RequestHandlers;
 
 public class CheckHotelAvailabilityHandlerTests
 {
-    public CheckHotelAvailabilityHandlerTests()
-    {
-    }
-
     [Fact]
     public void ShouldReturnAvailableRooms()
     {
