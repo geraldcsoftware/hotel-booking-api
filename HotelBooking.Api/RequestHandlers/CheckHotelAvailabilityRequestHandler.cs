@@ -23,14 +23,13 @@ public class CheckHotelAvailabilityRequestHandler :
     {
         var checkInDate = request.CheckIn.ToDateTime(TimeOnly.MinValue);
         var checkOutDate = request.CheckOut.ToDateTime(TimeOnly.MinValue);
-
-        var clashingReservationPredicate = PredicateBuilder.New<Reservation>(reservation =>
-                                                                                 reservation.CheckIn  <= checkOutDate ||
-                                                                                 reservation.CheckOut >= checkInDate);
+        
         var availableRoomsPredicate = PredicateBuilder.New<RoomOffer>(
                                                                       offer =>
                                                                           offer.Reservations
-                                                                             .Count(clashingReservationPredicate) <
+                                                                             .Count(reservation =>
+                                                                                  reservation.CheckIn  <= checkOutDate ||
+                                                                                  reservation.CheckOut >= checkInDate) <
                                                                           offer.Available);
 
         var availableRoomTypes = await _dbContext.Hotels
