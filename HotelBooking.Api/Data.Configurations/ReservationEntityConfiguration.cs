@@ -9,16 +9,16 @@ public class ReservationEntityConfiguration : IEntityTypeConfiguration<Reservati
     public void Configure(EntityTypeBuilder<Reservation> builder)
     {
         builder.ToTable("Reservations");
-        builder.Property(x => x.Id).IsRequired();
-        builder.Property(x => x.UserId).IsRequired();
-        builder.Property(x => x.HotelId).IsRequired();
-        builder.Property(x => x.Created).IsRequired();
-        builder.Property(x => x.RoomTypeId).IsRequired();
+        builder.Property(x => x.Id).IsRequired().HasMaxLength(50).IsUnicode(false);
+        builder.Property(x => x.UserId).IsRequired().HasMaxLength(50).IsUnicode(false);
+        builder.Property(x => x.HotelId).IsRequired().HasMaxLength(50).IsUnicode(false);
+        builder.Property(x => x.Created).IsRequired().HasColumnType("datetime");
+        builder.Property(x => x.RoomTypeId).IsRequired().HasMaxLength(50).IsUnicode(false);
         builder.Property(x => x.NumberOfRoomsBooked).IsRequired();
         builder.Property(x => x.Occupants).IsRequired();
-        builder.Property(x => x.CheckIn).IsRequired();
-        builder.Property(x => x.CheckOut).IsRequired();
-        builder.Property(x => x.PaymentStatus);
+        builder.Property(x => x.CheckIn).IsRequired().HasColumnType("date");
+        builder.Property(x => x.CheckOut).IsRequired().HasColumnType("date");
+        builder.Property(x => x.PaymentStatus).HasMaxLength(50).IsUnicode(false);
 
         builder.HasOne(x => x.Hotel).WithMany().HasForeignKey(x => x.HotelId);
         builder.HasOne(x => x.RoomType).WithMany(r => r.Reservations).HasForeignKey(x => x.RoomTypeId);
