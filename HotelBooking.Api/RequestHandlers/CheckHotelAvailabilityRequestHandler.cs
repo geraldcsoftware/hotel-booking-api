@@ -30,7 +30,7 @@ public class CheckHotelAvailabilityRequestHandler :
                                                                              .Count(reservation =>
                                                                                   reservation.CheckIn  <= checkOutDate ||
                                                                                   reservation.CheckOut >= checkInDate) <
-                                                                          offer.Available);
+                                                                          offer.NumberOfRooms);
 
         var availableRoomTypes = await _dbContext.Hotels
                                                  .Include(h => h.Offers)

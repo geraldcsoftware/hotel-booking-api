@@ -40,7 +40,7 @@ public class CheckHotelAvailabilityHandlerTests
                 Title = "Single Bed",
                 Price = 100,
                 MaximumOccupants = 1,
-                Available = 5,
+                NumberOfRooms = 5,
             },
             new RoomOffer
             {
@@ -49,7 +49,7 @@ public class CheckHotelAvailabilityHandlerTests
                 Title = "Double Sharing",
                 Price = 200,
                 MaximumOccupants = 2,
-                Available = 2,
+                NumberOfRooms = 2,
             },
         };
         var reservations = new List<Reservation>

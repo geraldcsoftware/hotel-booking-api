@@ -10,7 +10,7 @@ public class RoomOfferEntityConfiguration : IEntityTypeConfiguration<RoomOffer>
     {
         builder.ToTable("RoomOffers");
 
-        builder.Property(x => x.Available).IsRequired();
+        builder.Property(x => x.NumberOfRooms).IsRequired();
         builder.Property(x => x.HotelId).IsRequired();
         builder.Property(x => x.Id).IsRequired();
         builder.Property(x => x.MaximumOccupants).IsRequired();
