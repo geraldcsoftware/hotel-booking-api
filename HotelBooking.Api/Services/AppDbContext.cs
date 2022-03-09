@@ -9,8 +9,10 @@ public class AppDbContext : DbContext, IDbContext
     {
     }
 
+    public IQueryable<Reservation> Reservations => Set<Reservation>();
     public IQueryable<Hotel> Hotels => Set<Hotel>();
     public IQueryable<RoomOffer> RoomOffers => Set<RoomOffer>();
 
-    Task<int> IDbContext.SaveChangesAsync(CancellationToken cancellationToken) => base.SaveChangesAsync(cancellationToken);
+    Task<int> IDbContext.SaveChangesAsync(CancellationToken cancellationToken) =>
+        base.SaveChangesAsync(cancellationToken);
 }

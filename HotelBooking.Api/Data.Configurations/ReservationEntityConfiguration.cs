@@ -19,7 +19,7 @@ public class ReservationEntityConfiguration : IEntityTypeConfiguration<Reservati
         builder.Property(x => x.PaymentStatus);
 
         builder.HasOne(x => x.Hotel).WithMany().HasForeignKey(x => x.HotelId);
-        builder.HasOne(x => x.RoomType).WithMany().HasForeignKey(x => x.RoomTypeId);
+        builder.HasOne(x => x.RoomType).WithMany(r => r.Reservations).HasForeignKey(x => x.RoomTypeId);
 
         builder.HasIndex(x => new { x.CheckIn, x.CheckOut, x.HotelId }).IncludeProperties(x => x.RoomTypeId!);
     }

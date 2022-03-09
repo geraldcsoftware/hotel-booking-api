@@ -50,4 +50,15 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
    .WithDisplayName("Find Hotel By Id")
    .WithGroupName("Hotels");
 
+
+app.MapGet("/api/v1/hotels/{hotelId}/availability",
+           async (string hotelId, DateOnly? checkIn, DateOnly? checkOut, IMediator mediator) =>
+           {
+               var checkInDate = checkIn   ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+               var checkOutDate = checkOut ?? DateOnly.FromDateTime(DateTime.Today.AddDays(2));
+               var result = await mediator.Send(new CheckHotelAvailabilityRequest(hotelId, checkInDate, checkOutDate));
+               return Results.Ok(result);
+           })
+   .WithDisplayName("Check Hotel Availability")
+   .WithGroupName("Hotels");
 app.Run();

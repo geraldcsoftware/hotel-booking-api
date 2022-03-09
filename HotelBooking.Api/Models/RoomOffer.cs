@@ -8,4 +8,6 @@ public class RoomOffer
     public int MaximumOccupants { get; set; }
     public string? HotelId { get; set; }
     public int Available { get; set; }
+    public Hotel? Hotel { get; set; }
+    public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }
