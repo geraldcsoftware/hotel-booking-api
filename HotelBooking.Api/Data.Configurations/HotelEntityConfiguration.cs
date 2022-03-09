@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace HotelBooking.Api.Data.Configurations;
 
-public class HotelEntityConfiguration: IEntityTypeConfiguration<Hotel>
+public class HotelEntityConfiguration : IEntityTypeConfiguration<Hotel>
 {
     public void Configure(EntityTypeBuilder<Hotel> builder)
     {
@@ -14,7 +14,7 @@ public class HotelEntityConfiguration: IEntityTypeConfiguration<Hotel>
         builder.Property(x => x.Location);
         builder.Property(x => x.Name);
         builder.Property(x => x.Rating);
-        builder.Property(x => x.Features);
         builder.HasMany(x => x.Offers).WithOne().HasForeignKey(offer => offer.HotelId);
+        builder.HasMany(x => x.Features).WithOne().HasForeignKey(feature => feature.HotelId);
     }
 }
