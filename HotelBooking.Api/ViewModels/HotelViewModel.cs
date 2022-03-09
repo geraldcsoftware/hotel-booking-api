@@ -9,6 +9,6 @@ public class HotelViewModel
     public string? Address { get; set; }
     public string? Description { get; set; }
     public decimal PricesFrom { get; set; }
-    public Dictionary<string, object> Features { get; } = new();
-    public ICollection<RoomTypeViewModel> RoomTypeViewModels { get; } = new List<RoomTypeViewModel>();
+    public Dictionary<string, object> Features { get; set; } = new();
+    public ICollection<RoomTypeViewModel> RoomTypes { get; set; } = new List<RoomTypeViewModel>();
 }

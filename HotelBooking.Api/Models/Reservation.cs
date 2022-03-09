@@ -1,5 +1,9 @@
+using HotelBooking.Api.Data.Configurations;
+using Microsoft.EntityFrameworkCore;
+
 namespace HotelBooking.Api.Models;
 
+[EntityTypeConfiguration(typeof(ReservationEntityConfiguration))]
 public class Reservation
 {
     public string? Id { get; set; }
@@ -10,4 +14,6 @@ public class Reservation
     public DateTime CheckIn { get; set; }
     public DateTime CheckOut { get; set; }
     public string? PaymentStatus { get; set; }
+    public Hotel? Hotel { get; set; }
+    public RoomOffer? RoomType { get; set; }
 }

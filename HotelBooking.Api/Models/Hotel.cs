@@ -1,5 +1,9 @@
+using HotelBooking.Api.Data.Configurations;
+using Microsoft.EntityFrameworkCore;
+
 namespace HotelBooking.Api.Models;
 
+[EntityTypeConfiguration(typeof(HotelEntityConfiguration))]
 public class Hotel
 {
     public string? Name { get; set; }
