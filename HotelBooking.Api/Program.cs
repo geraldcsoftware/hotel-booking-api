@@ -1,7 +1,11 @@
 using System.Reflection;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using HotelBooking.Api.Requests;
 using HotelBooking.Api.Services;
+using HotelBooking.Api.Validators;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,9 +19,13 @@ if (string.IsNullOrEmpty(connectionString)) throw new("Connection string not pro
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddStackExchangeRedisCache(options =>
-    options.Configuration = builder.Configuration.GetConnectionString("Redis"));
+                                                options.Configuration =
+                                                    builder.Configuration.GetConnectionString("Redis"));
 builder.Services.AddTransient<ISystemCache, RedisCacheWrapper>();
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
+
+builder.Services.AddFluentValidation();
+builder.Services.AddTransient<IValidator<BookingRequest>, BookingRequestValidator>();
 
 var app = builder.Build();
 
@@ -46,7 +54,7 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
         return result switch
         {
             null => Results.NotFound(),
-            { } => Results.Ok(result)
+            { }  => Results.Ok(result)
         };
     })
    .WithDisplayName("Find Hotel By Id")
@@ -56,11 +64,49 @@ app.MapGet("/api/v1/hotels/{hotelId}", async (string hotelId, IMediator mediator
 app.MapGet("/api/v1/hotels/{hotelId}/availability",
            async (string hotelId, DateOnly? checkIn, DateOnly? checkOut, IMediator mediator) =>
            {
-               var checkInDate = checkIn ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+               var checkInDate = checkIn   ?? DateOnly.FromDateTime(DateTime.Today.AddDays(1));
                var checkOutDate = checkOut ?? DateOnly.FromDateTime(DateTime.Today.AddDays(2));
                var result = await mediator.Send(new CheckHotelAvailabilityRequest(hotelId, checkInDate, checkOutDate));
                return Results.Ok(result);
            })
    .WithDisplayName("Check Hotel Availability")
    .WithGroupName("Hotels");
+
+app.MapPost("/api/v1/bookings", async (BookingRequest model, IMediator mediator) =>
+    {
+        try
+        {
+            var result = await mediator.Send(model);
+            return result switch
+            {
+                null => Results.BadRequest(),
+                { }  => Results.Created($"/api/v1/reservations/{result.Id}", result)
+            };
+        }
+        catch (ValidationException exception)
+        {
+            var problemDetails = ToProblemDetails(exception);
+            return Results.BadRequest(problemDetails);
+        }
+    })
+    //.RequireAuthorization()
+   .WithDisplayName("Book Hotel")
+   .WithGroupName("Bookings");
+
+
 app.Run();
+
+ValidationProblemDetails ToProblemDetails(ValidationException validationException)
+{
+    var validationProblemDetails = new ValidationProblemDetails
+    {
+        Title = "Validation Error",
+        Detail = "See errors for details."
+    };
+    foreach (var error in validationException.Errors)
+    {
+        validationProblemDetails.Errors.Add(error.PropertyName, new[] { error.ErrorMessage });
+    }
+
+    return validationProblemDetails;
+}
