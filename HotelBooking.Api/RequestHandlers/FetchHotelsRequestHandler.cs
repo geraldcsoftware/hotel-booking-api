@@ -10,9 +10,9 @@ namespace HotelBooking.Api.RequestHandlers;
 
 public class FetchHotelsRequestHandler : IRequestHandler<FetchHotelsRequest, PagedCollection<HotelViewModel>>
 {
-    private readonly IDbContext _dbContext;
+    private readonly AppDbContext _dbContext;
 
-    public FetchHotelsRequestHandler(IDbContext dbContext)
+    public FetchHotelsRequestHandler(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }

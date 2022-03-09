@@ -8,10 +8,10 @@ namespace HotelBooking.Api.RequestHandlers;
 
 public class FindHotelByIdRequestHandler : IRequestHandler<FindHotelByIdRequest, HotelViewModel?>
 {
-    private readonly IDbContext _dbContext;
+    private readonly AppDbContext _dbContext;
     private readonly ISystemCache _systemCache;
 
-    public FindHotelByIdRequestHandler(IDbContext dbContext, ISystemCache systemCache)
+    public FindHotelByIdRequestHandler(AppDbContext dbContext, ISystemCache systemCache)
     {
         _dbContext = dbContext;
         _systemCache = systemCache;
@@ -24,6 +24,8 @@ public class FindHotelByIdRequestHandler : IRequestHandler<FindHotelByIdRequest,
             return hotelViewModel;
 
         hotelViewModel = await _dbContext.Hotels
+                                         .Include(h => h.Offers)
+                                         .AsNoTracking()
                                          .Where(hotel => hotel.Id == request.HotelId)
                                          .Select(h => new HotelViewModel
                                           {
@@ -33,7 +35,7 @@ public class FindHotelByIdRequestHandler : IRequestHandler<FindHotelByIdRequest,
                                               Location = h.Location,
                                               Rating = h.Rating,
                                               Name = h.Name,
-                                              PricesFrom = h.Offers.Min(offer => offer.Price),
+                                              PricesFrom = h.Offers.Select(x => x.Price).DefaultIfEmpty(0).Min(),
                                               RoomTypes = h.Offers.OrderByDescending(x => x.Price)
                                                            .Select(x => new RoomTypeViewModel
                                                             {

@@ -15,7 +15,6 @@ if (string.IsNullOrEmpty(connectionString)) throw new("Connection string not pro
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddMediatR(Assembly.GetExecutingAssembly());
-builder.Services.AddScoped<IDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
 var app = builder.Build();
 

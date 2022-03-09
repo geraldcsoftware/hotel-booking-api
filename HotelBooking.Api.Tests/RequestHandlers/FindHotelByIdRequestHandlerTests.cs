@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Bogus;
 using FluentAssertions;
 using HotelBooking.Api.Models;
@@ -7,7 +7,7 @@ using HotelBooking.Api.Requests;
 using HotelBooking.Api.Services;
 using HotelBooking.Api.ViewModels;
 using Moq;
-using Moq.EntityFrameworkCore.DbAsyncQueryProvider;
+using Moq.EntityFrameworkCore;
 using Xunit;
 
 namespace HotelBooking.Api.Tests.RequestHandlers;
@@ -15,7 +15,7 @@ namespace HotelBooking.Api.Tests.RequestHandlers;
 public class FindHotelByIdRequestHandlerTests
 {
     private readonly Mock<ISystemCache> _systemCacheMock = new(MockBehavior.Strict);
-    private readonly Mock<IDbContext> _dbContextMock = new(MockBehavior.Strict);
+    private readonly Mock<AppDbContext> _dbContextMock = new(MockBehavior.Strict);
 
     [Fact]
     public void WhenHotelExistsInCache_ShouldLoadFromCache()
@@ -44,11 +44,14 @@ public class FindHotelByIdRequestHandlerTests
     public void WhenHotelExistsInDatabase_ShouldUpdateCache()
     {
         // Arrange
-        var fakeResult = new Faker<Hotel>().RuleFor(x => x.Id, "1234").Generate();
+        var fakeResult = new Faker<Hotel>()
+                        .RuleFor(x => x.Id, "1234")
+                        .RuleFor(x => x.Offers, new Faker<RoomOffer>().Generate(5))
+                        .Generate();
         _systemCacheMock.Setup(x => x.TryGet(It.IsAny<string>(), out It.Ref<HotelViewModel>.IsAny))
                         .ReturnsAsync(false);
-        _systemCacheMock.Setup(x => x.Add(It.IsAny<string>(), It.IsAny<HotelViewModel>())).Verifiable();
-        _dbContextMock.Setup(x => x.Hotels).Returns(new InMemoryAsyncEnumerable<Hotel>(new List<Hotel> { fakeResult }));
+        _systemCacheMock.Setup(x => x.Add(It.IsAny<string>(), It.IsAny<HotelViewModel>())).Returns(Task.CompletedTask).Verifiable();
+        _dbContextMock.Setup(x => x.Hotels).ReturnsDbSet(new [] { fakeResult });
         var handler = new FindHotelByIdRequestHandler(_dbContextMock.Object, _systemCacheMock.Object);
         var request = new FindHotelByIdRequest("1234");
 
